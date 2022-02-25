@@ -1,8 +1,8 @@
 /*
 
 import Time exposing (customZone, Name, Offset)
-import Elm.Kernel.List exposing (Nil)
-import Elm.Kernel.Scheduler exposing (binding, succeed)
+import Gren.Kernel.List exposing (Nil)
+import Gren.Kernel.Scheduler exposing (binding, succeed)
 
 */
 

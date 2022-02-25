@@ -45,7 +45,7 @@ effect module Time where { subscription = MySub } exposing
 
 import Basics exposing (..)
 import Dict
-import Elm.Kernel.Time
+import Gren.Kernel.Time
 import List exposing ((::))
 import Maybe exposing (Maybe(..))
 import Platform
@@ -72,7 +72,7 @@ type Posix = Posix Int
 -}
 now : Task x Posix
 now =
-  Elm.Kernel.Time.now millisToPosix
+  Gren.Kernel.Time.now millisToPosix
 
 
 {-| Turn a `Posix` time into the number of milliseconds since 1970 January 1
@@ -174,7 +174,7 @@ cannot do it myself unfortunately.
 -}
 here : Task x Zone
 here =
-  Elm.Kernel.Time.here ()
+  Gren.Kernel.Time.here ()
 
 
 
@@ -408,14 +408,14 @@ type Month = Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | D
 interval in milliseconds (like `1000` for a second or `60 * 1000` for a minute
 or `60 * 60 * 1000` for an hour) and that is how often you get a new time!
 
-Check out [this example](https://elm-lang.org/examples/time) to see how to use
+Check out [this example](https://gren-lang.org/examples/time) to see how to use
 it in an application.
 
 **This function is not for animation.** Use the [`onAnimationFrame`][af]
 function for that sort of thing! It syncs up with repaints and will end up
 being much smoother for any moving visuals.
 
-[af]: /packages/elm/browser/latest/Browser-Events#onAnimationFrame
+[af]: /packages/gren-lang/browser/latest/Browser-Events#onAnimationFrame
 -}
 every : Float -> (Posix -> msg) -> Sub msg
 every interval tagger =
@@ -529,7 +529,7 @@ onSelfMsg router interval state =
 
 setInterval : Float -> Task Never () -> Task x Never
 setInterval =
-  Elm.Kernel.Time.setInterval
+  Gren.Kernel.Time.setInterval
 
 
 
@@ -554,7 +554,7 @@ offset if the time is older than all of the exceptions.
 When paired with `getZoneName`, this allows you to load the real IANA time zone
 database however you want: HTTP, cache, hardcode, etc.
 
-**Note:** If you use this, please share your work in an Elm community forum!
+**Note:** If you use this, please share your work in an Gren community forum!
 I am sure others would like to hear about it, and more experience reports will
 help me and the any potential TC39 proposal.
 -}
@@ -571,7 +571,7 @@ IANA data you loaded yourself.
 -}
 getZoneName : Task x ZoneName
 getZoneName =
-  Elm.Kernel.Time.getZoneName ()
+  Gren.Kernel.Time.getZoneName ()
 
 
 {-| **Intended for package authors.**

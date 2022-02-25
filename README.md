@@ -21,7 +21,7 @@ So to show a human being a time, you must always know **the POSIX time** and **t
 
 To figure out a human time, you need to ask two questions: (1) what POSIX time is it? and (2) what time zone am I in? Once you have that, you can decide how to show it on screen:
 
-```elm
+```gren
 import Time exposing (utc, toHour, toMinute, toSecond)
 
 toUtcString : Time.Posix -> String
@@ -36,7 +36,7 @@ toUtcString time =
 
 Notice that we provide the `utc` time zone to `toHour` and `toMinute`!
 
-Go [here](https://elm-lang.org/examples/time) for a little example application that uses time. It can help you get everything hooked up in practice!
+Go [here](https://gren-lang.org/examples/time) for a little example application that uses time. It can help you get everything hooked up in practice!
 
 
 ## Recurring Events
@@ -45,7 +45,7 @@ A lot of programmers need to handle recurring events. This meeting repeats every
 
 To properly handle recurring events, you need to create a custom `type` for your particular problem. Say you want to model a weekly event:
 
-```elm
+```gren
 import Time
 
 type alias WeeklyEvent =
@@ -76,7 +76,7 @@ Now the particular kinds of recurring events _you_ need are specific to _your_ a
 >
 > Point is, **the only thing ISO 8601 is good for is representing a `Time.Posix`, but less memory efficient and more confusing.** So I recommend using `Time.posixToMillis` and `Time.millisToPosix` for any client/server communication you control.
 
-That said, many endpoints use ISO 8601 for some reason, and it can therefore be quite useful in practice. I think the community should make some packages that define `fromIso8601 : String -> Maybe Time.Posix` in Elm. People can use `elm/parser` to make a fancy implementation, but maybe there is some faster or smaller implementation possible with `String.split` and such. Folks should experiment, and later on, we can revisit if any of them belong in this library.
+That said, many endpoints use ISO 8601 for some reason, and it can therefore be quite useful in practice. I think the community should make some packages that define `fromIso8601 : String -> Maybe Time.Posix` in Gren. People can use `gren-lang/parser` to make a fancy implementation, but maybe there is some faster or smaller implementation possible with `String.split` and such. Folks should experiment, and later on, we can revisit if any of them belong in this library.
 
 [8601]: https://en.wikipedia.org/wiki/ISO_8601
 
@@ -91,4 +91,4 @@ Right now this library gives basic `Posix` and `Zone` functions, but there are a
 
 I think points (2) and (3) should be explored by the community before we add anything here. Maybe we can have a package that hard codes the IANA time zone database? Maybe we can have a package that provides HTTP requests to ask for specific time zone data? Etc.
 
-**Note:** If you make progress that potentially needs coordination with other developers, **talk to people**. Present your work on [discourse](https://discourse.elm-lang.org/) to learn what the next steps might be. Is the idea good? Does it need more work? Are there other things to consider? Etc. Just opening an issue like “I totally redid the API” is not how we run things here, so focus on making a strong case through normal packages and friendly communication! And on timelines, we try to make one _great_ choice ever (not a _different_ choice every month) so things will take longer than in the JS world.
+**Note:** If you make progress that potentially needs coordination with other developers, **talk to people**. Present your work on [discourse](https://discourse.gren-lang.org/) to learn what the next steps might be. Is the idea good? Does it need more work? Are there other things to consider? Etc. Just opening an issue like “I totally redid the API” is not how we run things here, so focus on making a strong case through normal packages and friendly communication! And on timelines, we try to make one _great_ choice ever (not a _different_ choice every month) so things will take longer than in the JS world.
