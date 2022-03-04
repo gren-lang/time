@@ -46,7 +46,6 @@ effect module Time where { subscription = MySub } exposing
 import Basics exposing (..)
 import Dict
 import Gren.Kernel.Time
-import List exposing ((::))
 import Maybe exposing (Maybe(..))
 import Platform
 import Platform.Sub exposing (Sub)
@@ -105,7 +104,7 @@ See [`utc`](#utc) and [`here`](#here) to learn how to obtain `Zone` values.
 [iana]: https://www.iana.org/time-zones
 -}
 type Zone =
-  Zone Int (List Era)
+  Zone Int (Array Era)
 
 
 -- TODO: add this note back to `Zone` docs when it is true
@@ -319,17 +318,17 @@ toAdjustedMinutes (Zone defaultOffset eras) time =
   toAdjustedMinutesHelp defaultOffset (flooredDiv (posixToMillis time) 60000) eras
 
 
-toAdjustedMinutesHelp : Int -> Int -> List Era -> Int
+toAdjustedMinutesHelp : Int -> Int -> Array Era -> Int
 toAdjustedMinutesHelp defaultOffset posixMinutes eras =
-  case eras of
-    [] ->
+  case Array.get 0 eras of
+    Nothing ->
       posixMinutes + defaultOffset
 
-    era :: olderEras ->
+    Just era ->
       if era.start < posixMinutes then
         posixMinutes + era.offset
       else
-        toAdjustedMinutesHelp defaultOffset posixMinutes olderEras
+        toAdjustedMinutesHelp defaultOffset posixMinutes (Array.slice 1 (Array.length eras) eras)
 
 
 toCivil : Int -> { year : Int, month : Int, day : Int }
@@ -446,7 +445,7 @@ type alias Processes =
 
 
 type alias Taggers msg =
-  Dict.Dict Float (List (Posix -> msg))
+  Dict.Dict Float (Array (Posix -> msg))
 
 
 init : Task Never (State msg)
@@ -454,14 +453,14 @@ init =
   Task.succeed (State Dict.empty Dict.empty)
 
 
-onEffects : Platform.Router msg Float -> List (MySub msg) -> State msg -> Task Never (State msg)
+onEffects : Platform.Router msg Float -> Array (MySub msg) -> State msg -> Task Never (State msg)
 onEffects router subs {processes} =
   let
     newTaggers =
-      List.foldl addMySub Dict.empty subs
+      Array.foldl addMySub Dict.empty subs
 
     leftStep interval taggers (spawns, existing, kills) =
-      ( interval :: spawns, existing, kills )
+      ( [interval] ++ spawns, existing, kills )
 
     bothStep interval taggers id (spawns, existing, kills) =
       ( spawns, Dict.insert interval id existing, kills )
@@ -469,7 +468,7 @@ onEffects router subs {processes} =
     rightStep _ id (spawns, existing, kills) =
       ( spawns, existing, Task.andThen (\_ -> kills) (Process.kill id) )
 
-    (spawnList, existingDict, killTask) =
+    (spawnArray, existingDict, killTask) =
       Dict.merge
         leftStep
         bothStep
@@ -479,7 +478,7 @@ onEffects router subs {processes} =
         ([], Dict.empty, Task.succeed ())
   in
     killTask
-      |> Task.andThen (\_ -> spawnHelp router spawnList existingDict)
+      |> Task.andThen (\_ -> spawnHelp router spawnArray existingDict)
       |> Task.andThen (\newProcesses -> Task.succeed (State newTaggers newProcesses))
 
 
@@ -490,19 +489,22 @@ addMySub (Every interval tagger) state =
       Dict.insert interval [tagger] state
 
     Just taggers ->
-      Dict.insert interval (tagger :: taggers) state
+      Dict.insert interval ([tagger] ++ taggers) state
 
 
-spawnHelp : Platform.Router msg Float -> List Float -> Processes -> Task.Task x Processes
+spawnHelp : Platform.Router msg Float -> Array Float -> Processes -> Task.Task x Processes
 spawnHelp router intervals processes =
-  case intervals of
-    [] ->
+  case Array.get 0 intervals of
+    Nothing ->
       Task.succeed processes
 
-    interval :: rest ->
+    Just interval ->
       let
         spawnTimer =
           Process.spawn (setInterval interval (Platform.sendToSelf router interval))
+
+        rest =
+          Array.slice 1 (Array.length intervals) intervals
 
         spawnRest id =
           spawnHelp router rest (Dict.insert interval id processes)
@@ -520,7 +522,7 @@ onSelfMsg router interval state =
     Just taggers ->
       let
         tellTaggers time =
-          Task.sequence (List.map (\tagger -> Platform.sendToApp router (tagger time)) taggers)
+          Task.sequence (Array.map (\tagger -> Platform.sendToApp router (tagger time)) taggers)
       in
         now
           |> Task.andThen tellTaggers
@@ -558,7 +560,7 @@ database however you want: HTTP, cache, hardcode, etc.
 I am sure others would like to hear about it, and more experience reports will
 help me and the any potential TC39 proposal.
 -}
-customZone : Int -> List { start : Int, offset : Int } -> Zone
+customZone : Int -> Array { start : Int, offset : Int } -> Zone
 customZone =
   Zone
 
