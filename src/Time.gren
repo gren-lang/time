@@ -459,23 +459,17 @@ onEffects router subs {processes} =
     newTaggers =
       Array.foldl addMySub Dict.empty subs
 
-    leftStep interval taggers (spawns, existing, kills) =
-      ( [interval] ++ spawns, existing, kills )
+    spawnArray =
+        Dict.diff newTaggers processes
+            |> Dict.keys
 
-    bothStep interval taggers id (spawns, existing, kills) =
-      ( spawns, Dict.insert interval id existing, kills )
+    existingDict =
+        Dict.filter (\key _ -> Dict.member key newTaggers) processes
 
-    rightStep _ id (spawns, existing, kills) =
-      ( spawns, existing, Task.andThen (\_ -> kills) (Process.kill id) )
-
-    (spawnArray, existingDict, killTask) =
-      Dict.merge
-        leftStep
-        bothStep
-        rightStep
-        newTaggers
-        processes
-        ([], Dict.empty, Task.succeed ())
+    killTask =
+        Dict.diff processes newTaggers
+            |> Dict.values
+            |> Array.foldl (\id -> Task.andThen (\_ -> Process.kill id)) (Task.succeed ())
   in
     killTask
       |> Task.andThen (\_ -> spawnHelp router spawnArray existingDict)
