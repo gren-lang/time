@@ -45,6 +45,7 @@ effect module Time where { subscription = MySub } exposing
 
 import Basics exposing (..)
 import Dict
+import Math
 import Gren.Kernel.Time
 import Maybe exposing (Maybe(..))
 import Platform
@@ -173,7 +174,7 @@ cannot do it myself unfortunately.
 -}
 here : Task x Zone
 here =
-  Gren.Kernel.Time.here ()
+  Gren.Kernel.Time.here Unit
 
 
 
@@ -246,7 +247,7 @@ toDay zone time =
 -}
 toWeekday : Zone -> Posix -> Weekday
 toWeekday zone time =
-  case modBy 7 (flooredDiv (toAdjustedMinutes zone time) (60 * 24)) of
+  case Math.modBy 7 (flooredDiv (toAdjustedMinutes zone time) (60 * 24)) of
     0 -> Thu
     1 -> Fri
     2 -> Sat
@@ -267,7 +268,7 @@ toWeekday zone time =
 -}
 toHour : Zone -> Posix -> Int
 toHour zone time =
-  modBy 24 (flooredDiv (toAdjustedMinutes zone time) 60)
+  Math.modBy 24 (flooredDiv (toAdjustedMinutes zone time) 60)
 
 
 {-| What minute is it? (From 0 to 59)
@@ -281,7 +282,7 @@ by 30 or 45 minutes!
 -}
 toMinute : Zone -> Posix -> Int
 toMinute zone time =
-  modBy 60 (toAdjustedMinutes zone time)
+  Math.modBy 60 (toAdjustedMinutes zone time)
 
 
 {-| What second is it?
@@ -294,7 +295,7 @@ toMinute zone time =
 -}
 toSecond : Zone -> Posix -> Int
 toSecond _ time =
-  modBy 60 (flooredDiv (posixToMillis time) 1000)
+  Math.modBy 60 (flooredDiv (posixToMillis time) 1000)
 
 
 {-|
@@ -306,7 +307,7 @@ toSecond _ time =
 -}
 toMillis : Zone -> Posix -> Int
 toMillis _ time =
-  modBy 1000 (posixToMillis time)
+  Math.modBy 1000 (posixToMillis time)
 
 
 
@@ -351,7 +352,7 @@ toCivil minutes =
 
 flooredDiv : Int -> Float -> Int
 flooredDiv numerator denominator =
-  floor (toFloat numerator / denominator)
+  Math.floor (toFloat numerator / denominator)
 
 
 
@@ -469,7 +470,7 @@ onEffects router subs {processes} =
     killTask =
         Dict.diff processes newTaggers
             |> Dict.values
-            |> Array.foldl (\id -> Task.andThen (\_ -> Process.kill id)) (Task.succeed ())
+            |> Array.foldl (\id -> Task.andThen (\_ -> Process.kill id)) (Task.succeed Unit)
   in
     killTask
       |> Task.andThen (\_ -> spawnHelp router spawnArray existingDict)
@@ -523,7 +524,7 @@ onSelfMsg router interval state =
           |> Task.andThen (\_ -> Task.succeed state)
 
 
-setInterval : Float -> Task Never () -> Task x Never
+setInterval : Float -> Task Never Unit -> Task x Never
 setInterval =
   Gren.Kernel.Time.setInterval
 
@@ -567,7 +568,7 @@ IANA data you loaded yourself.
 -}
 getZoneName : Task x ZoneName
 getZoneName =
-  Gren.Kernel.Time.getZoneName ()
+  Gren.Kernel.Time.getZoneName Unit
 
 
 {-| **Intended for package authors.**
