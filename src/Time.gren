@@ -451,7 +451,7 @@ type alias Taggers msg =
 
 init : Task Never (State msg)
 init =
-  Task.succeed (State Dict.empty Dict.empty)
+  Task.succeed { taggers = Dict.empty, processes = Dict.empty }
 
 
 onEffects : Platform.Router msg Float -> Array (MySub msg) -> State msg -> Task Never (State msg)
@@ -474,7 +474,7 @@ onEffects router subs {processes} =
   in
     killTask
       |> Task.andThen (\_ -> spawnHelp router spawnArray existingDict)
-      |> Task.andThen (\newProcesses -> Task.succeed (State newTaggers newProcesses))
+      |> Task.andThen (\newProcesses -> Task.succeed { taggers = newTaggers, processes = newProcesses })
 
 
 addMySub : MySub msg -> Taggers msg -> Taggers msg
